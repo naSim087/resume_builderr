@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume Submission</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Resume Submission</h1>
+    <form id="resumeForm" action="/api/submit" method="POST" enctype="multipart/form-data">
+      <div class="form-group">
+        <label for="company">Company Name</label>
+        <select id="company" name="company" required>
+          <option value="" disabled selected>Select a Company</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="role">Role</label>
+        <select id="role" name="role" required>
+          <option value="" disabled selected>Select a Role</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="resume">Upload Resume (PDF)</label>
+        <input type="file" id="resume" name="resume" accept="application/pdf" required>
+      </div>
+      <button type="submit" class="btn-submit">Submit</button>
+    </form>
+    <div id="loadingMessage" style="display:none;">Processing...</div>
+    <div id="successMessage" style="display:none;">Submission Successful!</div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const companySelect = document.getElementById('company');
+        const companies = await fetch('/api/companies').then(res => res.json());
+
+        // Populate company dropdown
+        companies.forEach(company => {
+          const option = document.createElement('option');
+          option.value = company.name;
+          option.textContent = company.name;
+          companySelect.appendChild(option);
+        });
+
+        // Event listener for company selection
+        companySelect.addEventListener('change', async (event) => {
+          const selectedCompany = event.target.value;
+          const roleSelect = document.getElementById('role');
+
+          // Clear existing options in the role dropdown
+          roleSelect.innerHTML = '<option value="" disabled selected>Select a Role</option>';
+
+          // Fetch roles for the selected company
+          const response = await fetch(`/api/roles?company=${selectedCompany}`);
+          const roleData = await response.json();
+          
+          // Assuming roleData is structured like: { roles: ['Role1', 'Role2'] }
+          const roles = roleData.roles; // Adjust according to your API response structure
+
+          // Populate role dropdown
+          roles.forEach(role => {
+            const option = document.createElement('option');
+            option.value = role; // Role value
+            option.textContent = role; // Role display text
+            roleSelect.appendChild(option);
+          });
+        });
+      } catch (error) {
+        console.error('Error fetching companies or roles:', error);
+      }
+    });
+
+    // Form submission validation for PDF file
+    document.getElementById('resumeForm').addEventListener('submit', async function(e) {
+      const fileInput = document.getElementById('resume');
+      if (!fileInput.files[0] || fileInput.files[0].type !== 'application/pdf') {
+        alert('Please upload a PDF file.');
+        e.preventDefault();
+        return;
+      }
+
+      // Show processing message
+      const loadingMessage = document.getElementById('loadingMessage');
+      loadingMessage.style.display = 'block';
+
+      // Prevent form submission from leaving the page
+      e.preventDefault();
+
+      // Create a FormData object
+      const formData = new FormData(this);
+
+      try {
+        const response = await fetch(this.action, {
+          method: this.method,
+          body: formData
+        });
+
+        if (response.ok) {
+          // Hide loading message and show success message
+          loadingMessage.style.display = 'none';
+          const successMessage = document.getElementById('successMessage');
+          successMessage.style.display = 'block';
+
+          // Optionally reset the form after submission
+          this.reset();
+        } else {
+          throw new Error('Submission failed');
+        }
+      } catch (error) {
+        console.error('Error submitting form:', error);
+        loadingMessage.style.display = 'none';
+        alert('There was an error processing your submission.');
+      }
+    });
+  </script>
+</body>
+</html>

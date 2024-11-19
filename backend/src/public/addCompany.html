@@ -1,0 +1,27 @@
+<!-- public/addCompany.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Company</title>
+  <link rel="stylesheet" href="style1.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Add a Company and Roles</h1>
+    <form id="addCompanyForm">
+      <label for="companyName">Company Name:</label>
+      <input type="text" id="companyName" name="companyName" required>
+
+      <label for="roles">Roles (comma-separated):</label>
+      <input type="text" id="roles" name="roles" placeholder="e.g., Software Engineer, Data Scientist" required>
+
+      <button type="submit">Add Company</button>
+    </form>
+    <div id="message"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

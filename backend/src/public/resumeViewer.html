@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Viewer</title>
+    <link rel="stylesheet" href="resstyle.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.6.347/pdf.min.js"></script>
+</head>
+<body>
+  
+<div class="page" id="page2">
+    <div class="container">
+        <canvas id="pdf-canvas"></canvas>
+        <div class="controls">
+            <button id="prev">Previous</button>
+            <button id="next">Next</button>
+            <span>Page: <span id="page_num">1</span> / <span id="page_count">1</span></span>
+            <span> | Resume: <span id="resume_num">1</span> / <span id="resume_count">1</span></span>
+        </div>
+    </div>
+</div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const company = urlParams.get('company');
+        const role = urlParams.get('role');
+        const pdfjsLib = window['pdfjs-dist/build/pdf'];
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.6.347/pdf.worker.min.js';
+
+        let pdfDocs = [];
+        let currentPdfIndex = 0;
+        let currentPageNum = 1;
+        let pageIsRendering = false;
+        let pageNumIsPending = null;
+
+        const canvas = document.getElementById('pdf-canvas');
+        const ctx = canvas.getContext('2d');
+
+        const renderPage = async (num) => {
+            pageIsRendering = true;
+            const pdfDoc = pdfDocs[currentPdfIndex];
+            const page = await pdfDoc.getPage(num);
+            const viewport = page.getViewport({ scale: 1.5 });
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            const renderCtx = {
+                canvasContext: ctx,
+                viewport: viewport
+            };
+
+            await page.render(renderCtx).promise;
+            pageIsRendering = false;
+
+            if (pageNumIsPending !== null) {
+                renderPage(pageNumIsPending);
+                pageNumIsPending = null;
+            }
+
+            document.getElementById('page_num').textContent = currentPageNum;
+        };
+
+        const queueRenderPage = (num) => {
+            if (pageIsRendering) {
+                pageNumIsPending = num;
+            } else {
+                renderPage(num);
+            }
+        };
+
+        const loadPdf = async (pdfPath) => {
+            try {
+                const pdfDoc = await pdfjsLib.getDocument(pdfPath).promise;
+                pdfDocs.push(pdfDoc);
+                
+                // Only update the resume count after loading all PDFs
+                document.getElementById('resume_count').textContent = pdfDocs.length;
+
+                // If it's the first PDF, initialize rendering
+                if (pdfDocs.length === 1) {
+                    document.getElementById('page_count').textContent = pdfDoc.numPages; // Set the total page count for the first PDF
+                    renderPage(1); // Render the first page of the first PDF
+                }
+            } catch (error) {
+                console.error('Error loading PDF:', error);
+                alert('Failed to load the PDF. Please try another file.');
+            }
+        };
+
+        const showNextPageOrResume = () => {
+            if (currentPageNum < pdfDocs[currentPdfIndex].numPages) {
+                currentPageNum++;
+                queueRenderPage(currentPageNum);
+            } else if (currentPdfIndex < pdfDocs.length - 1) {
+                currentPdfIndex++;
+                currentPageNum = 1;
+                renderCurrentResume();
+            }
+        };
+
+        const showPreviousPageOrResume = () => {
+            if (currentPageNum > 1) {
+                currentPageNum--;
+                queueRenderPage(currentPageNum);
+            } else if (currentPdfIndex > 0) {
+                currentPdfIndex--;
+                currentPageNum = pdfDocs[currentPdfIndex].numPages;
+                renderCurrentResume();
+            }
+        };
+
+        const renderCurrentResume = () => {
+            const pdfDoc = pdfDocs[currentPdfIndex];
+            document.getElementById('resume_num').textContent = currentPdfIndex + 1; // Update the current resume number
+            document.getElementById('page_count').textContent = pdfDoc.numPages; // Update the total page count for the current resume
+            renderPage(currentPageNum); // Render the current page
+        };
+
+        document.getElementById('prev').addEventListener('click', showPreviousPageOrResume);
+        document.getElementById('next').addEventListener('click', showNextPageOrResume);
+
+        window.onload = async () => {
+            try {
+                const response = await fetch(`/api/getResumePath?company=${company}&role=${role}`);
+                if (!response.ok) throw new Error('Failed to fetch PDF paths');
+                const data = await response.json();
+                const pdfPaths = data.pdfPaths;
+
+                if (pdfPaths.length === 0) {
+                    alert('No resumes available for this selection.');
+                    return;
+                }
+
+                // Load PDFs and update the internal state
+                for (const path of pdfPaths) {
+                    await loadPdf(path);
+                }
+
+                // After loading all PDFs, initialize the state
+                currentPdfIndex = 0; // Start with the first PDF
+                currentPageNum = 1; // Start with the first page
+
+                // Update the resume number for the first PDF
+                document.getElementById('resume_num').textContent = currentPdfIndex + 1;
+
+                // Render the first resume
+                renderCurrentResume();
+            } catch (error) {
+                console.error('Error loading PDFs:', error);
+                alert('Failed to load resumes.');
+            }
+        };
+    </script>
+</body>
+</html>

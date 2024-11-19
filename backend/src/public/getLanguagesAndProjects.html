@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Relevant Languages and Projects</title>
+    <link rel="stylesheet" href="style3.css"> <!-- Link to your CSS file -->
+</head>
+<body>
+    <div class="container">
+        <h1>Get Relevant Languages and Projects</h1>
+        <form id="queryForm">
+            <div class="form-group">
+                <label for="company">Company Name</label>
+                <select id="company" name="company" required>
+                    <option value="" disabled selected>Select a Company</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="role">Role</label>
+                <select id="role" name="role" required>
+                    <option value="" disabled selected>Select a Role</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-submit">Get Data</button>
+        </form>
+
+        <div id="loading" style="display: none;">Loading...</div>
+        <div id="result" style="display: none;">
+            <h2>Relevant Languages:</h2>
+            <ul id="languagesList"></ul>
+            <h2>Relevant Projects:</h2>
+            <ul id="projectsList"></ul>
+        </div>
+        <div id="errorMessage" style="display: none;"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+
+                const companySelect = document.getElementById('company');
+                const companies = await fetch('/api/companies').then(res => res.json());
+
+
+                companies.forEach(company => {
+                    const option = document.createElement('option');
+                    option.value = company.name;
+                    option.textContent = company.name;
+                    companySelect.appendChild(option);
+                });
+
+
+                companySelect.addEventListener('change', async (event) => {
+                    const selectedCompany = event.target.value;
+                    const roleSelect = document.getElementById('role');
+
+
+                    roleSelect.innerHTML = '<option value="" disabled selected>Select a Role</option>';
+
+
+                    const response = await fetch(`/api/roles?company=${selectedCompany}`);
+                    const roleData = await response.json();
+
+
+                    roleData.roles.forEach(role => {
+                        const option = document.createElement('option');
+                        option.value = role;
+                        option.textContent = role;
+                        roleSelect.appendChild(option);
+                    });
+                });
+            } catch (error) {
+                console.error('Error fetching companies or roles:', error);
+            }
+        });
+
+
+       
+        document.getElementById('queryForm').addEventListener('submit', function(e) {
+    e.preventDefault(); // Prevent the default form submission
+    const companySelect = document.getElementById('company');
+    const roleSelect = document.getElementById('role');
+
+    // Redirect to the new page with company and role as query parameters
+    window.location.href = `relevantData.html?company=${encodeURIComponent(companySelect.value)}&role=${encodeURIComponent(roleSelect.value)}`;
+});
+    </script>
+</body>
+</html>

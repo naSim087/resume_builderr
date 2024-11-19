@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relevant Languages and Projects</title>
+    <link rel="stylesheet" href="relestyle.css"> <!-- Link to your CSS file -->
+</head>
+<body>
+    <div class="container">
+        <h1>Relevant Languages and Projects</h1>
+        <div id="loading" style="display: none;">Loading...</div>
+        <div id="result" style="display: none;">
+            <h2>Relevant Languages:</h2>
+            <ul id="languagesList"></ul>
+            <h2>Relevant Projects:</h2>
+            <ul id="projectsList"></ul>
+            <!-- Button to view resumes -->
+            <button id="viewResumeBtn" style="display: none;">View Resume(s)</button>
+        </div>
+        <div id="errorMessage" style="display: none;"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const company = urlParams.get('company');
+            const role = urlParams.get('role');
+            const loading = document.getElementById('loading');
+            const resultDiv = document.getElementById('result');
+            const languagesList = document.getElementById('languagesList');
+            const projectsList = document.getElementById('projectsList');
+            const errorMessage = document.getElementById('errorMessage');
+            const viewResumeBtn = document.getElementById('viewResumeBtn');
+
+            loading.style.display = 'block';
+
+            try {
+                
+                const response = await fetch(`/api/relevant?company=${company}&role=${role}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    languagesList.innerHTML = '';
+                    projectsList.innerHTML = '';
+
+                    // Populate languages
+                    data.languages.forEach((lang) => {
+                        const li = document.createElement('li');
+                        li.textContent = `${lang}`;
+                        languagesList.appendChild(li);
+                    });
+
+                    // Populate projects
+                    data.projects.forEach((project) => {
+                        const li = document.createElement('li');
+                        li.textContent = `${project}`;
+                        projectsList.appendChild(li);
+                    });
+
+                    console.log(data);
+                    if (data.resumePaths && data.resumePaths.length > 0) {
+                        viewResumeBtn.style.display = 'inline-block';
+                        viewResumeBtn.onclick = () => {
+                            window.location.href = `/resumeViewer.html?company=${company}&role=${role}`;
+                        };
+                    }
+
+                    resultDiv.style.display = 'block';
+                } else {
+                    const errorData = await response.json();
+                    errorMessage.textContent = errorData.message || 'An error occurred while fetching data.';
+                    errorMessage.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error fetching relevant data:', error);
+                errorMessage.textContent = 'An error occurred while fetching data.';
+                errorMessage.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

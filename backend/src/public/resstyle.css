@@ -1,0 +1,91 @@
+/* resstyle.css */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh; /* Ensure full height */
+  background-color: #f0f2f5;
+}
+
+.container {
+
+  width: 50vw; 
+  padding: 20px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  text-align: center;
+  overflow: hidden; 
+}
+
+h1 {
+  font-size: 28px; 
+  margin-bottom: 20px;
+  color: #333;
+}
+
+#pdf-canvas {
+  width: 100%;
+  height: 120vh; /* Set height to 80vh for better layout */
+  border: 1px solid #ddd;
+  margin-bottom: 20px; /* Add margin for spacing */
+  border-radius: 5px;
+}
+
+button {
+  padding: 10px 20px; /* Adjust button padding */
+  margin: 5px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  color: #ffffff;
+  background-color: #007bff;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+button:focus {
+  outline: none;
+}
+
+span {
+  font-size: 16px;
+  color: #333;
+}
+
+span#page_num, span#page_count {
+  font-weight: bold;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  h1 {
+    font-size: 24px; /* Adjust heading size for smaller screens */
+  }
+
+  button {
+    width: 100%; /* Full width buttons on small screens */
+    margin: 5px 0; /* Stack buttons */
+  }
+
+  span {
+    font-size: 14px; /* Smaller font size for spans */
+  }
+}
