@@ -1,0 +1,29 @@
+.nav-icon {
+  font-size: 18px; /* Smaller icon size */
+  padding: 5px;  /* Adjust padding */
+  width: 24px;   /* Adjust width */
+  height: 24px;  /* Adjust height */
+  padding: 1rem 1rem;
+  margin-left: 2px;
+}
+
+/* Make the notification icon smaller */
+.notification-icon {
+  position: relative;
+  display: inline-block;
+ 
+}
+
+.notification-count {
+  position: absolute;
+  top: -3px;   /* Adjust the position of the notification bubble */
+  right: -3px;
+  background-color: red;
+  color: white;
+  font-size: 10px;  /* Smaller font size */
+  font-weight: bold;
+  border-radius: 50%;
+  padding: 3px 6px; /* Smaller padding */
+  min-width: 18px;  /* Smaller minimum width */
+  text-align: center;
+}
